@@ -68,6 +68,7 @@ const defaultConfig = {
   中文注解: true,
   隐藏完成复习的单词: true,
   单词弹幕速度: 10,
+  发音次数: 1,
   有道智云key: '',
   有道智云appkey: ''
   // 记忆曲线自定义: [],
@@ -79,6 +80,7 @@ const defaultConfig = {
 class BlueSea {
   constant = {
     sortRule: {
+      alphabetic: '按首字母',
       ctime: '创建时间（近->远）',
       learnTime: '复习时间（近->远）',
       learnLevel: '复习级别(低->高)',
@@ -149,9 +151,9 @@ class BlueSea {
     }
 
     const material = {
-      text: t,
+      text,
       textExts,
-      translation: youdao.translation[0],
+      translation: youdao.basic ? youdao.basic.explains[0] : youdao.translation[0],
       ctime: dayjs().format(),
       learn: this.createLearnObj(),
       // 保留完整数据，后面可能会使用
@@ -255,6 +257,9 @@ class BlueSea {
   async handleSort(list, sortRule) {
     const l = JSON.parse(JSON.stringify(list));
     const handle = {
+      alphabetic: () => {
+        return l.sort((a, b) => a.text.localeCompare(b.text, 'es', { sensitivity: 'base' }))
+      },
       ctime: () => {
         return l.sort((a, b) => {
           return a.ctime < b.ctime ? 1 : -1;

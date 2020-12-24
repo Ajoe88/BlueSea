@@ -1,4 +1,4 @@
-function makeBulletApp(root, { material, onOperate, destroy, autoAudio, bulletSpeed }) {
+function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTimes, bulletSpeed }) {
   const App = () => {
     const ytlBulletRef = useRef();
     const ytlBulletContentRef = useRef();
@@ -8,6 +8,19 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, bulletSp
     const [animationRunning, setAnimationRunning] = useState(true);
 
     const audioRef = useRef();
+    const play = (audio, times) => {
+      let played = 0;
+      const playCatch = () => audio.play().catch(e => {
+        console.error(e)
+      });
+      audio.addEventListener("ended", () => {
+          played += 1;
+          if (played < times) {            
+            playCatch();
+          }
+      });
+      playCatch()
+    };
 
     useEffect(() => {
       const t =
@@ -18,9 +31,7 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, bulletSp
     useEffect(() => {
       const listenEnter = () => {
         if(audioRef.current){
-          audioRef.current.play().catch(e => {
-            console.error(e)
-          })
+          play(audioRef.current, playTimes)
         }
         setAnimationRunning(false);
       };
@@ -221,6 +232,7 @@ class ButtelScreens {
     makeBulletApp(buttelRoot, {
       bulletSpeed: this.config['单词弹幕速度'] || 10, //可能存在未更新配置的用户，后续将删除默认值
       autoAudio: this.config['自动发音'],
+      playTimes: this.config['发音次数'],
       material,
       onOperate: (flag) => {
         if (flag) {
