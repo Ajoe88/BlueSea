@@ -83,8 +83,8 @@ function makeTipEl(root, options, isBottom) {
     // 少于4个单词时发音(兼顾单词、短语)
     const words = options.text.split(' ').length;
     const isOneWord = words === 1;
-    const isPhrase = words > 1 && words <=4; //暂且认为可能的小句也是短语
-    const isSentence = words > 4;
+    const isPhrase = words > 1 && words <= 3; //暂且认为可能的小句也是短语
+    const isSentence = words > 3;
 
     const audioRef = useRef();
     const [tfData, setTfData] = useState(null);

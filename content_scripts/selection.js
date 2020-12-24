@@ -41,8 +41,8 @@ const listenMouseup = (e) => {
         return;
       }
 
-      if (!/.*[a-zA-Z]{3,}.*/.test(selectText)) {
-        // console.log('所选内容必须存在连续3个及以上字母时，才展开翻译');
+      if (!/.*[a-zA-Z]{2,}.*/.test(selectText)) {
+        // console.log('所选内容必须存在连续2个及以上字母时，才展开翻译');
         return;
       }
 
@@ -51,7 +51,7 @@ const listenMouseup = (e) => {
       if (selectTextArr.length === 1) {
         // 非句子情况下，仅匹配纯粹单词，如果匹配到特殊符号就跳过，这里是为了避免干扰复制各类命令或url
         // 是否需要兼容，可能存在左右端误选了标点符号的情况呢？
-        const symbolReg = /[`~!@#$%^&*()_+=<>?:"{}|,.\/;'\\[\]·~！@#￥%……&*（）——+={}|《》？：“”【】、；‘'，。、]/im;
+        const symbolReg = /[`~!@#$%^&*()_+=<>?:"{}|,.;'\\[\]·~！@#￥%……&*（）——+={}|《》？：“”【】、；‘'，。、]/im;
         if (symbolReg.test(selectText)) {
           return;
         }
