@@ -77,10 +77,10 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
         ['-webkit-animation-play-state']: animationRunning
           ? 'running'
           : 'paused',
-        ['box-shadow']: animationRunning
-          ? 'none'
-          : '0 0 8px rgba(0, 0, 0, 0.4)',
-        background: animationRunning ? 'none' : '#fff',
+        // ['box-shadow']: animationRunning
+        //   ? 'none'
+        //   : '0 0 6px rgba(0, 0, 0, 0.4)',
+        // background: animationRunning ? 'none' : 'rgba(255, 255, 255, 0.6)',
         top,
       }}
     >
@@ -93,15 +93,7 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
           ></audio>`
         : ''}
       <div
-        style="margin: 0 auto;
-          background: rgba(0, 0, 0, 0.7);
-          padding: 0 8px;
-          height: 32px;
-          line-height: 32px;
-          text-align: center;
-          display: inline-block;
-          border-radius: 16px;
-          color: #fff;"
+        class="word-box"
         ref=${ytlBulletContentRef}
         onmouseup=${e => {
           if(e.button === 1 && material.addFrom) {
@@ -129,15 +121,8 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
         }}
       >
         <div
-          style="
-            flex: 1;
-            text-align: center;
-            color: #fff;
-            border-radius: 4px;
-            padding: 4px;
-            cursor: pointer;
-            user-select: none;
-            background: #ff4d4f;"
+          class="operate-button"
+          style="background: #ff4d4f; margin-right: 8px;"
           onClick=${() => {
             setOperated('no');
             onOperate(false);
@@ -145,17 +130,9 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
         >
           不认识
         </div>
-        <div style="width: 8px"></div>
         <div
-          style="
-            flex: 1;
-            text-align: center;
-            color: #fff;
-            border-radius: 4px;
-            padding: 4px;
-            cursor: pointer;
-            user-select: none;
-            background: #61bd4f;"
+          class="operate-button"
+          style="background: #61bd4f;"
           onClick=${() => {
             setOperated('yes');
             onOperate(true);
@@ -166,11 +143,31 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
       </div>
 
       <style>
+        .word-box {
+          margin: 0 auto;
+          background: rgba(0, 0, 0, 0.6);
+          padding: 2px 6px;
+          text-align: center;
+          display: inline-block;
+          border-radius: 6px;
+          font-size: 11px;
+        }
+        .operate-button {
+          flex: 1;
+          text-align: center;
+          color: #fff;
+          font-size:10px;
+          border-radius: 2px;
+          padding: 2px;
+          cursor: pointer;
+          user-select: none;
+        }
+
         .bluesea-bullet {
           position: fixed;
           text-align: center;
           left: 500px;
-          width: 180px;
+          width: 120px;
           z-index: 2147483647;
           border-radius: 4px;
           padding: 8px;
