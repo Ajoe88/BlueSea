@@ -39,13 +39,22 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
         setAnimationRunning(true);
       };
 
-      const listenAnimationiteration = () => {
-        if (operated) {
-          destroy();
+      const listenAnimationiteration = async () => {
+        // 每次动画结束后，就校验当前单词是否还在复习清单内（可能在其他地方被操作）
+        await buttelScreens.updateButteList();
+        const exist = buttelScreens.buttelList.some(
+          (it) => it.text === material.text
+        );
+        if (exist) {
+          if (operated) {
+            destroy();
+          } else {
+            setTop(
+              Math.random() * (document.documentElement.clientHeight - 150) + 32
+            );
+          }
         } else {
-          setTop(
-            Math.random() * (document.documentElement.clientHeight - 150) + 32
-          );
+          destroy();
         }
       };
 
@@ -95,8 +104,8 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
       <div
         class="word-box"
         ref=${ytlBulletContentRef}
-        onmouseup=${e => {
-          if(e.button === 1 && material.addFrom) {
+        onmouseup=${(e) => {
+          if (e.button === 1 && material.addFrom) {
             window.open(material.addFrom, '_blank');
           }
         }}
@@ -110,6 +119,26 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
           }}
           >${material.translation}</span
         >
+      </div>
+
+      <div
+        style=${{
+          alignItems: 'center',
+          padding: '4px 2px;',
+          marginTop: 4,
+          display: animationRunning ? 'none' : operated ? 'flex' : 'none',
+        }}
+      >
+        <div
+          class="operate-button"
+          style="background: #0070f3;"
+          onClick=${() => {
+            setOperated(null);
+            onOperate('revoke');
+          }}
+        >
+          记错了，重来
+        </div>
       </div>
 
       <div
@@ -167,11 +196,15 @@ function makeBulletApp(root, { material, onOperate, destroy, autoAudio, playTime
           position: fixed;
           text-align: center;
           left: 500px;
-          width: 120px;
+          width: 150px;
           z-index: 2147483647;
           border-radius: 4px;
           padding: 8px;
           animation: bluesea-bullet-animation ${bulletSpeed}s infinite linear 0s;
+        }
+        .bluesea-bullet,
+        .bluesea-bullet > * {
+          font-size: 12px;
         }
 
         @keyframes bluesea-bullet-animation {
@@ -196,8 +229,17 @@ class ButtelScreens {
   timer = null;
   buttelList = [];
   config = {};
+
+  async updateButteList() {
+    const l = await bluesea.getNeedLearnList();
+    // 过滤掉非学习清单中的单词
+    this.buttelList = this.buttelList.filter((it) => {
+      return l.some((a) => a.text === it.text);
+    });
+  }
+
   async getConfig() {
-    return await bluesea.getConfig();;
+    return await bluesea.getConfig();
   }
 
   async getOneMaterial() {
@@ -208,30 +250,40 @@ class ButtelScreens {
     return l2[0];
   }
 
-  async addButtel(material) {
-    const l = await bluesea.getNeedLearnList();
-    // 过滤掉非学习清单中的单词
-    this.buttelList = this.buttelList.filter((it) => {
-      return l.some((a) => a.text === it.text);
-    });
+  addButtel(material) {
     this.buttelList.push(material);
   }
-  async delButtel(material) {
+  delButtel(material) {
     const i = this.buttelList.findIndex((it) => it.text === material.text);
     this.buttelList.splice(i, 1);
   }
 
-  async makeBullet(material) {
+  async makeBullet() {
+    this.config = await this.getConfig();
+    const material = await this.getOneMaterial();
+    if (!material) {
+      return;
+    }
+    if (this.buttelList.length > this.config['单词弹幕数量上限']) {
+      return;
+    }
+
     const buttelRoot = document.createElement('div');
     buttelRoot.classList.add('bluesea', 'bluesea-bullet-screens');
-    buttelRoot.style.userSelect = 'none';
+    // buttelRoot.style.userSelect = 'none';
     document.body.appendChild(buttelRoot);
     makeBulletApp(buttelRoot, {
       bulletSpeed: this.config['单词弹幕速度'] || 10, //可能存在未更新配置的用户，后续将删除默认值
       autoAudio: this.config['自动发音'],
       playTimes: this.config['发音次数'],
       material,
-      onOperate: (flag) => {
+      onOperate: async (flag) => {
+        if (flag === 'revoke') {
+          await bluesea.updateMaterialObj(material)
+          this.addButtel(material)
+          return 
+        }
+
         if (flag) {
           bluesea.toLearnNext(material.text);
         } else {
@@ -244,25 +296,39 @@ class ButtelScreens {
         buttelRoot.parentNode.removeChild(buttelRoot);
       },
     });
-
+    await this.updateButteList();
     this.addButtel(material);
   }
 
-  async start() {
-    this.timer = setInterval(async () => {
-      this.config = await this.getConfig();
-      const material = await this.getOneMaterial();
-      if (!material) {
+  start() {
+    if (
+      !(document.visibilityState === 'visible' && window.self === window.top)
+    ) {
+      return;
+    }
+    this.focusFn = () => {
+      if (this.timer) {
         return;
       }
-      if (this.buttelList.length > this.config['单词弹幕数量上限']) {
-        return;
-      }
-      this.makeBullet(material);
-    }, 3000);
+      this.timer = setInterval(() => {
+        this.makeBullet();
+      }, 3000);
+    };
+    this.focusFn();
+    window.addEventListener('focus', this.focusFn);
+
+    this.blurFn = () => {
+      this.clear();
+    };
+    window.addEventListener('blur', this.blurFn);
   }
-  clear() {
+  clear(full) {
+    if (full) {
+      window.removeEventListener('focus', this.focusFn);
+      window.removeEventListener('blur', this.blurFn);
+    }
     clearInterval(this.timer);
+    this.timer = null;
     this.buttelList = [];
     document.querySelectorAll('.bluesea-bullet-screens').forEach((it) => {
       render(null, it);
@@ -273,26 +339,14 @@ class ButtelScreens {
 
 const buttelScreens = new ButtelScreens();
 
-const listenVisibilitychange = () => {
-  if (document.visibilityState === 'visible') {
-    buttelScreens.start();
-  } else {
-    buttelScreens.clear();
-  }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
   funCtrl.run(
     '单词弹幕',
     () => {
-      document.addEventListener('visibilitychange', listenVisibilitychange);
-      if (window.self === window.top) {
-        buttelScreens.start();
-      }
+      buttelScreens.start();
     },
     () => {
-      document.removeEventListener('visibilitychange', listenVisibilitychange);
-      buttelScreens.clear();
+      buttelScreens.clear(true);
     }
   );
 });
