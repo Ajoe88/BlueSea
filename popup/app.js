@@ -15,7 +15,7 @@ const TabItemMap = {
 
 const App = () => {
   const [tabKey, setTableKey] = useState(TabItemMap.Material.key);
-
+  const tabComponentRef = useRef()
   const menus = [
     { label: '查词', key: TabItemMap.Search.key },
     { label: '词库', key: TabItemMap.Material.key },
@@ -34,7 +34,7 @@ const App = () => {
       }}
     >
       <div style="height: 400px">
-        <${TabItemMap[tabKey].Component} />
+        <${TabItemMap[tabKey].Component} ref={tabComponentRef} />
       </div>
       <div
         style=${{
@@ -51,6 +51,10 @@ const App = () => {
               style="flex: 1; padding: 8px; cursor: pointer; text-align: center; color: ${color}"
               onClick=${() => {
                 setTableKey(it.key);
+                if(tabComponentRef.current && it.key === TabItemMap.Search.key) {
+                    //点查词即focus
+                    tabComponentRef.current.focus();
+                }
               }}
             >
               ${it.label}
