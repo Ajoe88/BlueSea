@@ -320,7 +320,7 @@ class ButtelScreens {
     this.blurFn = () => {
       this.clear();
     };
-    window.addEventListener('blur', this.blurFn);
+    // window.addEventListener('blur', this.blurFn);
   }
   clear(full) {
     if (full) {
