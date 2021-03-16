@@ -1,6 +1,6 @@
-const Search = () => {
+const Search = forwardRef((props, ref) => {
   const { list } = bluesea.useMaterialsMate();
-
+  const inputRef = useRef()
   const [text, setText] = useState('');
   const [material, setMaterial] = useState(null);
 
@@ -13,6 +13,12 @@ const Search = () => {
     })
     .slice(0, 8);
 
+  useImperativeHandle(ref, () => ({
+    focus() {
+      inputRef.current.focus();
+    }
+  }));
+
   return html`
     <div style="height: 400px; overflow-y: auto; box-sizing: border-box;">
       <div>
@@ -24,6 +30,7 @@ const Search = () => {
             setText(e.target.value);
             setMaterial(null);
           }}
+          ref=${inputRef}
         />
       </div>
       ${!material &&
@@ -72,4 +79,4 @@ const Search = () => {
       </div>`}
     </div>
   `;
-};
+});

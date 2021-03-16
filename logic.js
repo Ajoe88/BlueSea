@@ -1,13 +1,19 @@
-const {
-  html,
-  Component,
-  render,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-} = window.$htm || {};
+// const {
+//   html,
+//   Component,
+//   render,
+//   useEffect,
+//   useState,
+//   useCallback,
+//   useRef,
+//   useMemo,
+//   useImperativeHandle
+// } = window.$htm || {};
+
+const { Component, render, createRef } = preact;
+const { useEffect,  useState, useCallback, useRef, useMemo, useImperativeHandle } = preactHooks;
+const { forwardRef } = preactCompat;
+const html = htm.bind(preact.h);
 
 class Storage {
   constructor(key) {
